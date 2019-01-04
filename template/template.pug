@@ -1,0 +1,54 @@
+
+
+template
+    div()
+        Form(inline :model='queryForm' :label-width="90" class="formQueryStyle" v-show="isTableView")
+            each tag, index in dataArr
+                if index > 3
+                    FormItem(v-show="isShowMore" label=`${tag[1]}`)
+                        Input(clearable placeholder="请输入" v-model=`queryForm.${tag[0]}Equals`)
+                else 
+                    FormItem(label=`${tag[1]}`)
+                        Input(clearable placeholder="请输入" v-model=`queryForm.${tag[0]}Equals`)
+            FormItem
+                div(class="query-btn")
+                    a(class="show-more" @click="isShowMore = !isShowMore")
+                        Icon(type="minus-round" v-show="isShowMore")
+                        Icon(type="plus-round" v-show="!isShowMore")
+                        span(v-show="!isShowMore") 查看更多
+                        span(v-show="isShowMore") 收起更多
+                    Button( @click="clearQueryData") 清空
+                    Button(type="primary" @click="queryData") 查询
+        div(v-show="isTableView")
+            div(style="overflow: hidden; margin: 6px 0;")
+                Dropdown(style="float: right;" trigger="custom" :visible="isCustomDrop" placement="top-end" @on-clickoutside="customDropShow(false)")
+                    Button(type="primary" @click="customDropShow(true)")
+                        Icon(type="navicon-round")
+                        span 自定义显示列
+                        Icon(type="arrow-down-b")
+                    DropdownMenu(slot="list")
+                        Checkbox-group(v-model="tableColumnsChecked" @on-change="changeTableColumns")
+                            DropdownItem(v-for="item in customList" :key="item.key")
+                                Checkbox(:label="item.key") {{item.title}}
+                            DropdownItem(divided)
+                                Button(type="error" long size="small" @click="customDropShow(false)") 关闭
+                Page(:total="total" :current="current" :page-size="pageSize" :page-size-opts="pageSizeOpts" @on-change="changePage" @on-page-size-change="changePageSize")
+            VTable(v-if="isLoading" :parColumns="tableColumns" :parTableData="tableData" @sort="sort" @selectObj="selectObj")
+            div(v-else style="height: 666px;position:relative;")
+                Spin(fix)
+                    Icon(type="load-c" size=18 class="demo-spin-icon-load")
+                    div Loading
+            div(style="margin: 10px; overflow: hidden")
+                div(style="float: right")
+                    Page(show-total show-elevator show-sizer :total="total" :current="current" :page-size="pageSize" :page-size-opts="pageSizeOpts" @on-change="changePage" @on-page-size-change="changePageSize")
+            // 一下为表单部分
+        div(v-if="!isTableView" class="formModalStyle formStyle")
+            div(class="form-title") {{formTitle}}
+                Button(type="success", size="small" class="form-title-button" v-show="recordNum != -1") {{recordNum}}
+            Form(ref="formInline" :model="formInline" :rules="ruleInline" inline :label-width="120" label-position="left")
+                each tag, index in dataArr
+                    FormItem(v-show="isDetails" label=`${tag[1]}`)
+                        Input(type="text" :readonly="isDetails" v-model=`formInline.${tag[0]}`)
+            div(class="submit-wrap")
+                Button(type="primary" size="large" @click="save" style="width: 80px" v-show="!isDetails") 保存
+                Button( size="large" @click="close" style="width: 80px; margin: 0 12px") 关闭
